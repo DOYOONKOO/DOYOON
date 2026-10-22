@@ -31,6 +31,21 @@ export function userLabel(user: User) {
   return user.email || pick("name") || pick("nickname") || pick("preferred_username") || "내 계정";
 }
 
+/** "구글로 로그인" 처럼 어떤 방법으로 로그인했는지 */
+export function providerLabel(user: User) {
+  const provider = (user.app_metadata as Record<string, unknown> | undefined)?.provider;
+  switch (provider) {
+    case "google":
+      return "구글로 로그인";
+    case "kakao":
+      return "카카오로 로그인";
+    case "email":
+      return "이메일로 로그인";
+    default:
+      return "로그인 중";
+  }
+}
+
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth는 AuthGate 안에서만 사용할 수 있어요.");

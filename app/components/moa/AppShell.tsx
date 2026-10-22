@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { useAuth, userLabel } from "../../lib/moa/auth";
+import { useAuth } from "../../lib/moa/auth";
 import { useApp } from "../../lib/moa/store";
 import { Icon, type IconName } from "./icons";
-import { ConfirmDialog, Modal, cn } from "./ui";
+import { MoreSheet, SidebarAccount } from "./MoreMenu";
+import { ConfirmDialog, cn } from "./ui";
 
 interface NavItem {
   href: string;
@@ -34,9 +35,20 @@ function isActive(pathname: string, href: string) {
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { isDemo, saveFailed, actions, toast } = useApp();
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
   const [clearDemoOpen, setClearDemoOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+
+  async function handleLogout() {
+    try {
+      await signOut();
+      // 성공하면 로그인 화면으로 바뀌면서 이 화면은 사라진다
+    } catch {
+      setLogoutOpen(false);
+      toast("로그아웃하지 못했어요. 잠시 후 다시 시도해 주세요.", "error");
+    }
+  }
 
   const moreActive = MOBILE_MORE.some((n) => isActive(pathname, n.href));
 
@@ -69,22 +81,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
-        <div className="mt-auto space-y-3 px-3">
-          <div>
-            <p className="truncate text-sm font-semibold text-ink" title={userLabel(user)}>
-              {userLabel(user)}
-            </p>
-            <button
-              type="button"
-              onClick={signOut}
-              className="mt-0.5 text-[13px] font-semibold text-muted underline underline-offset-2 hover:text-ink"
-            >
-              로그아웃
-            </button>
-          </div>
-          <p className="text-xs leading-relaxed text-muted">
-            내 계정에 저장돼요. 카드사·결제·구독 서비스와는 아직 연결되어 있지 않아요.
-          </p>
+        <div className="mt-auto">
+          <SidebarAccount onLogout={() => setLogoutOpen(true)} />
         </div>
       </aside>
 
@@ -154,32 +152,27 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </nav>
 
       {moreOpen && (
-        <Modal title="더보기" onClose={() => setMoreOpen(false)}>
-          <ul className="flex flex-col gap-1">
-            {MOBILE_MORE.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setMoreOpen(false)}
-                  className="flex items-center gap-3 rounded-2xl px-3 py-4 text-base font-semibold text-ink hover:bg-fill"
-                >
-                  <Icon name={item.icon} className="text-muted" />
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-3 border-t border-fill pt-4">
-            <p className="truncate text-sm font-semibold text-ink">{userLabel(user)}</p>
-            <button
-              type="button"
-              onClick={signOut}
-              className="mt-1 text-sm font-semibold text-muted underline underline-offset-2"
-            >
-              로그아웃
-            </button>
-          </div>
-        </Modal>
+        <MoreSheet
+          onClose={() => setMoreOpen(false)}
+          onLogout={() => {
+            setMoreOpen(false);
+            setLogoutOpen(true);
+          }}
+          onClearDemo={() => {
+            setMoreOpen(false);
+            setClearDemoOpen(true);
+          }}
+        />
+      )}
+
+      {logoutOpen && (
+        <ConfirmDialog
+          title="로그아웃할까요?"
+          description="저장된 구독 정보는 그대로 남아 있어요. 다시 로그인하면 이어서 볼 수 있어요."
+          confirmLabel="로그아웃"
+          onClose={() => setLogoutOpen(false)}
+          onConfirm={handleLogout}
+        />
       )}
 
       {clearDemoOpen && (
