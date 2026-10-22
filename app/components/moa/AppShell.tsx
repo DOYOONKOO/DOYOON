@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { useAuth } from "../../lib/moa/auth";
+import { useAuth, userLabel } from "../../lib/moa/auth";
 import { useApp } from "../../lib/moa/store";
 import { Icon, type IconName } from "./icons";
 import { ConfirmDialog, Modal, cn } from "./ui";
@@ -71,8 +71,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </nav>
         <div className="mt-auto space-y-3 px-3">
           <div>
-            <p className="truncate text-sm font-semibold text-ink" title={user.email}>
-              {user.email}
+            <p className="truncate text-sm font-semibold text-ink" title={userLabel(user)}>
+              {userLabel(user)}
             </p>
             <button
               type="button"
@@ -170,7 +170,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             ))}
           </ul>
           <div className="mt-3 border-t border-fill pt-4">
-            <p className="truncate text-sm font-semibold text-ink">{user.email}</p>
+            <p className="truncate text-sm font-semibold text-ink">{userLabel(user)}</p>
             <button
               type="button"
               onClick={signOut}

@@ -24,6 +24,13 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** 화면에 보여줄 계정 이름. 카카오처럼 이메일이 없는 계정은 닉네임을 쓴다. */
+export function userLabel(user: User) {
+  const meta = user.user_metadata as Record<string, unknown> | undefined;
+  const pick = (key: string) => (typeof meta?.[key] === "string" ? (meta[key] as string) : "");
+  return user.email || pick("name") || pick("nickname") || pick("preferred_username") || "내 계정";
+}
+
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth는 AuthGate 안에서만 사용할 수 있어요.");
