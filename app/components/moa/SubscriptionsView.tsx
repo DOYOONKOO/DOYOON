@@ -26,7 +26,7 @@ import {
   ServiceAvatar,
   SubscriptionStatusBadge,
   cn,
-  inputClass,
+  inputOnGrayClass,
 } from "./ui";
 
 type ViewMode = "card" | "list";
@@ -115,7 +115,7 @@ export default function SubscriptionsView() {
               {addButton}
               <Link
                 href="/explore"
-                className="inline-flex h-11 items-center rounded-xl border border-line bg-surface px-4 text-[15px] font-semibold text-ink hover:bg-canvas"
+                className="inline-flex h-12 items-center rounded-2xl bg-accent-soft px-5 text-base font-semibold text-accent-strong transition-all hover:bg-[#d5e8ff] active:scale-[0.98]"
               >
                 서비스 둘러보기
               </Link>
@@ -132,7 +132,7 @@ export default function SubscriptionsView() {
                   className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted"
                 />
                 <input
-                  className={cn(inputClass, "pl-10")}
+                  className={cn(inputOnGrayClass, "pl-10")}
                   type="search"
                   placeholder="서비스명 검색"
                   aria-label="서비스명 검색"
@@ -152,7 +152,7 @@ export default function SubscriptionsView() {
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <select
-                className={inputClass}
+                className={inputOnGrayClass}
                 aria-label="카테고리 필터"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as CategoryId | "all")}
@@ -165,7 +165,7 @@ export default function SubscriptionsView() {
                 ))}
               </select>
               <select
-                className={inputClass}
+                className={inputOnGrayClass}
                 aria-label="상태 필터"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as SubscriptionStatus | "all")}
@@ -178,7 +178,7 @@ export default function SubscriptionsView() {
                 ))}
               </select>
               <select
-                className={inputClass}
+                className={inputOnGrayClass}
                 aria-label="결제 카드 필터"
                 value={cardId}
                 onChange={(e) => setCardId(e.target.value)}
@@ -215,7 +215,7 @@ export default function SubscriptionsView() {
                     type="button"
                     onClick={() => setDetailId(s.id)}
                     className={cn(
-                      "flex h-full w-full flex-col rounded-2xl border border-line bg-surface p-5 text-left transition-shadow hover:shadow-md",
+                      "flex h-full w-full flex-col rounded-3xl bg-surface p-6 text-left transition-transform active:scale-[0.99]",
                       s.status === "ended" && "opacity-70",
                     )}
                   >
@@ -233,7 +233,7 @@ export default function SubscriptionsView() {
                       {formatMoney(s.amount, s.currency)}{" "}
                       <span className="text-sm font-semibold text-muted">{cycleSuffix(s.cycle)}</span>
                     </p>
-                    <dl className="mt-3 space-y-1 border-t border-line pt-3 text-[13px]">
+                    <dl className="mt-3 space-y-1 border-t border-fill pt-3 text-[13px]">
                       <div className="flex justify-between gap-3">
                         <dt className="text-muted">다음 결제</dt>
                         <dd className="text-right font-semibold">
@@ -257,7 +257,7 @@ export default function SubscriptionsView() {
               ))}
             </ul>
           ) : (
-            <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+            <ul className="divide-y divide-fill overflow-hidden rounded-2xl border border-line bg-surface">
               {filtered.map((s) => (
                 <li key={s.id}>
                   <button

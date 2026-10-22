@@ -20,12 +20,14 @@ export function cn(...parts: (string | false | null | undefined)[]) {
 }
 
 // ── 버튼 ───────────────────────────────────────────────
-type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "dangerSoft";
+type ButtonVariant = "primary" | "secondary" | "neutral" | "ghost" | "danger" | "dangerSoft";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-accent text-white hover:bg-accent-strong",
-  secondary: "border border-line bg-surface text-ink hover:bg-canvas",
-  ghost: "text-muted hover:bg-canvas hover:text-ink",
+  // 토스의 연한 파랑 버튼
+  secondary: "bg-accent-soft text-accent-strong hover:bg-[#d5e8ff]",
+  neutral: "bg-fill text-body hover:bg-fill-strong",
+  ghost: "text-muted hover:bg-fill",
   danger: "bg-bad text-white hover:opacity-90",
   dangerSoft: "bg-bad-soft text-bad hover:opacity-90",
 };
@@ -44,10 +46,10 @@ export function Button({
       type="button"
       {...props}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl font-semibold transition-colors",
+        "inline-flex shrink-0 items-center justify-center gap-1.5 font-semibold transition-all active:scale-[0.98]",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        size === "sm" ? "h-9 px-3 text-sm" : "h-11 px-4 text-[15px]",
+        "disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100",
+        size === "sm" ? "h-9 rounded-xl px-3.5 text-sm" : "h-12 rounded-2xl px-5 text-base",
         BUTTON_VARIANTS[variant],
         className,
       )}
@@ -68,7 +70,7 @@ export function IconButton({
       title={label}
       {...props}
       className={cn(
-        "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-canvas hover:text-ink",
+        "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-subtle transition-colors hover:bg-fill hover:text-ink",
         "focus-visible:outline-2 focus-visible:outline-accent",
         className,
       )}
@@ -79,10 +81,14 @@ export function IconButton({
 }
 
 // ── 폼 ─────────────────────────────────────────────────
+// 흰 카드·시트 안에서 쓰는 입력창 (연회색 면)
 export const inputClass =
-  "h-11 w-full rounded-xl border border-line bg-surface px-3 text-[15px] text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:bg-canvas";
+  "h-12 w-full rounded-2xl border border-transparent bg-fill px-4 text-base text-ink outline-none transition-colors placeholder:text-[#b0b8c1] focus:border-accent focus:bg-surface disabled:text-subtle";
+// 회색 배경 위에서 쓰는 입력창 (흰 면)
+export const inputOnGrayClass =
+  "h-12 w-full rounded-2xl border border-transparent bg-surface px-4 text-base text-ink outline-none transition-colors placeholder:text-[#b0b8c1] focus:border-accent";
 export const textareaClass =
-  "w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-[15px] text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-accent focus:ring-2 focus:ring-accent/20";
+  "w-full rounded-2xl border border-transparent bg-fill px-4 py-3 text-base text-ink outline-none transition-colors placeholder:text-[#b0b8c1] focus:border-accent focus:bg-surface";
 
 export function Field({
   label,
@@ -99,14 +105,14 @@ export function Field({
 }) {
   return (
     <label className={cn("block", className)}>
-      <span className="mb-1.5 block text-sm font-medium text-muted">{label}</span>
+      <span className="mb-2 block text-[13px] font-semibold text-muted">{label}</span>
       {children}
       {error ? (
-        <span role="alert" className="mt-1 block text-[13px] text-bad">
+        <span role="alert" className="mt-1.5 block text-[13px] font-medium text-bad">
           {error}
         </span>
       ) : hint ? (
-        <span className="mt-1 block text-[13px] text-muted">{hint}</span>
+        <span className="mt-1.5 block text-[13px] text-subtle">{hint}</span>
       ) : null}
     </label>
   );
@@ -127,7 +133,7 @@ export function Segmented<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className="inline-flex rounded-xl border border-line bg-canvas p-1"
+      className="inline-flex rounded-2xl bg-fill-strong p-1"
     >
       {options.map((o) => (
         <button
@@ -137,9 +143,9 @@ export function Segmented<T extends string>({
           disabled={o.disabled}
           onClick={() => onChange(o.value)}
           className={cn(
-            "inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+            "inline-flex h-9 items-center gap-1.5 rounded-xl px-4 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40",
             value === o.value
-              ? "bg-surface text-ink shadow-sm"
+              ? "bg-surface text-ink shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
               : "text-muted hover:text-ink",
           )}
         >
@@ -210,7 +216,7 @@ export function Modal({
         aria-label="닫기"
         tabIndex={-1}
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-ink/40"
+        className="absolute inset-0 cursor-default bg-black/50"
       />
       <div
         ref={panelRef}
@@ -219,20 +225,19 @@ export function Modal({
         aria-label={title}
         tabIndex={-1}
         className={cn(
-          "relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-3xl bg-surface outline-none",
+          "relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-surface outline-none",
           drawer
-            ? "md:max-h-none md:max-w-md md:rounded-none md:rounded-l-3xl"
-            : "md:max-w-lg md:rounded-3xl",
+            ? "md:max-h-none md:max-w-md md:rounded-none md:rounded-l-[28px]"
+            : "md:max-w-lg md:rounded-[28px]",
         )}
       >
-        <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-5">
-          <h2 className="text-lg font-bold text-ink">{title}</h2>
+        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-fill-strong md:hidden" />
+        <div className="flex items-center justify-between gap-3 px-6 pb-2 pt-4 md:pt-6">
+          <h2 className="text-xl font-bold tracking-tight text-ink">{title}</h2>
           <IconButton icon="x" label="닫기" onClick={onClose} />
         </div>
-        <div className="flex-1 overflow-y-auto px-5 pb-5">{children}</div>
-        {footer && (
-          <div className="border-t border-line bg-surface px-5 py-4">{footer}</div>
-        )}
+        <div className="flex-1 overflow-y-auto px-6 pb-6 pt-2">{children}</div>
+        {footer && <div className="bg-surface px-6 pb-6 pt-2">{footer}</div>}
       </div>
     </div>
   );
@@ -260,7 +265,7 @@ export function ConfirmDialog({
       top
       footer={
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>
+          <Button variant="neutral" className="flex-1" onClick={onClose}>
             취소
           </Button>
           <Button
@@ -273,7 +278,7 @@ export function ConfirmDialog({
         </div>
       }
     >
-      <div className="text-[15px] leading-relaxed text-muted">{description}</div>
+      <div className="text-[15px] leading-relaxed text-body">{description}</div>
     </Modal>
   );
 }
@@ -286,14 +291,14 @@ const TONES: Record<Tone, string> = {
   accent: "bg-accent-soft text-accent-strong",
   warn: "bg-warn-soft text-warn",
   bad: "bg-bad-soft text-bad",
-  neutral: "bg-[#eeece6] text-muted",
+  neutral: "bg-fill text-muted",
 };
 
 export function Badge({ tone = "neutral", children }: { tone?: Tone; children: ReactNode }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold",
+        "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold",
         TONES[tone],
       )}
     >
@@ -331,12 +336,12 @@ export function RowStatusBadge({ status }: { status: RowStatus }) {
 }
 
 const AVATAR_TINTS = [
-  ["#efebfb", "#5b43b5"],
-  ["#e6f1ec", "#2d6a54"],
-  ["#f7ece2", "#97582a"],
-  ["#e8eef7", "#3b5a8c"],
-  ["#f6e9ee", "#93405e"],
-  ["#eeede7", "#5b584e"],
+  ["#e8f3ff", "#3182f6"],
+  ["#e3f6ee", "#0a9d6a"],
+  ["#fff2df", "#d9780f"],
+  ["#ffecee", "#f04452"],
+  ["#f1ebff", "#7a4de8"],
+  ["#f2f4f6", "#4e5968"],
 ];
 
 export function ServiceAvatar({
@@ -354,10 +359,10 @@ export function ServiceAvatar({
     <span
       aria-hidden="true"
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-xl font-bold",
-        size === "sm" && "h-9 w-9 text-base",
-        size === "md" && "h-11 w-11 text-lg",
-        size === "lg" && "h-14 w-14 rounded-2xl text-2xl",
+        "inline-flex shrink-0 items-center justify-center rounded-full font-bold",
+        size === "sm" && "h-10 w-10 text-base",
+        size === "md" && "h-12 w-12 text-lg",
+        size === "lg" && "h-16 w-16 text-2xl",
       )}
       style={{ backgroundColor: bg, color: fg }}
     >
@@ -378,17 +383,17 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line bg-surface px-6 py-12 text-center">
-      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent">
-        <Icon name={icon} className="h-6 w-6" />
+    <div className="rounded-3xl bg-surface px-6 py-14 text-center">
+      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-accent">
+        <Icon name={icon} className="h-7 w-7" />
       </span>
-      <p className="mt-4 text-base font-bold text-ink">{title}</p>
+      <p className="mt-5 text-lg font-bold text-ink">{title}</p>
       {description && (
-        <p className="mx-auto mt-1 max-w-sm text-sm leading-relaxed text-muted">
+        <p className="mx-auto mt-1.5 max-w-sm text-[15px] leading-relaxed text-muted">
           {description}
         </p>
       )}
-      {action && <div className="mt-5 flex flex-wrap justify-center gap-2">{action}</div>}
+      {action && <div className="mt-6 flex flex-wrap justify-center gap-2">{action}</div>}
     </div>
   );
 }
@@ -403,13 +408,13 @@ export function Notice({
   return (
     <div
       className={cn(
-        "flex gap-2.5 rounded-xl px-3.5 py-3 text-[13px] leading-relaxed",
+        "flex gap-2.5 rounded-2xl px-4 py-3.5 text-[14px] leading-relaxed",
         tone === "info" && "bg-accent-soft text-accent-strong",
         tone === "warn" && "bg-warn-soft text-warn",
         tone === "bad" && "bg-bad-soft text-bad",
       )}
     >
-      <Icon name={tone === "info" ? "info" : "alert"} className="mt-0.5 h-4 w-4 shrink-0" />
+      <Icon name={tone === "info" ? "info" : "alert"} className="mt-0.5 h-[18px] w-[18px] shrink-0" />
       <div>{children}</div>
     </div>
   );
@@ -422,11 +427,7 @@ export function Card({
   children: ReactNode;
   className?: string;
 }) {
-  return (
-    <section className={cn("rounded-2xl border border-line bg-surface p-5", className)}>
-      {children}
-    </section>
-  );
+  return <section className={cn("rounded-3xl bg-surface p-6", className)}>{children}</section>;
 }
 
 export function SectionHeader({
@@ -438,7 +439,7 @@ export function SectionHeader({
 }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-base font-bold text-ink">{title}</h2>
+      <h2 className="text-lg font-bold tracking-tight text-ink">{title}</h2>
       {action}
     </div>
   );
@@ -454,10 +455,10 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-ink">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+        <h1 className="text-[28px] font-bold leading-tight tracking-tight text-ink">{title}</h1>
+        {description && <p className="mt-1.5 text-[15px] text-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
@@ -491,9 +492,9 @@ export function MoneyView({
 
 export function ProgressBar({ ratio, over = false }: { ratio: number; over?: boolean }) {
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-[#eeece6]">
+    <div className="h-2.5 w-full overflow-hidden rounded-full bg-fill">
       <div
-        className={cn("h-full rounded-full", over ? "bg-bad" : "bg-accent")}
+        className={cn("h-full rounded-full transition-all", over ? "bg-bad" : "bg-accent")}
         style={{ width: `${Math.min(100, Math.max(0, ratio * 100))}%` }}
       />
     </div>

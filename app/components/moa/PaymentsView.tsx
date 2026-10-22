@@ -24,7 +24,7 @@ import {
   Notice,
   PageHeader,
   Segmented,
-  inputClass,
+  inputOnGrayClass,
 } from "./ui";
 
 type Tab = "all" | "paid" | "upcoming" | "check" | "problem";
@@ -121,7 +121,7 @@ export default function PaymentsView() {
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1 rounded-xl border border-line bg-surface p-1">
+        <div className="flex items-center gap-1 rounded-2xl bg-surface p-1">
           <IconButton icon="chevronLeft" label="이전 달" onClick={() => setMonth(shiftMonthKey(month, -1))} />
           <span className="min-w-[96px] text-center text-[15px] font-bold text-ink">
             {formatMonthLabel(month)}
@@ -173,7 +173,7 @@ export default function PaymentsView() {
         </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <select
-            className={inputClass}
+            className={inputOnGrayClass}
             aria-label="서비스 필터"
             value={service}
             onChange={(e) => setService(e.target.value)}
@@ -186,7 +186,7 @@ export default function PaymentsView() {
             ))}
           </select>
           <select
-            className={inputClass}
+            className={inputOnGrayClass}
             aria-label="결제 카드 필터"
             value={cardId}
             onChange={(e) => setCardId(e.target.value)}
@@ -218,13 +218,14 @@ export default function PaymentsView() {
           {grouped.map(([date, rows]) => (
             <Card key={date} className="p-4 pb-2">
               <h3 className="text-sm font-semibold text-muted">{formatKoDate(date, true)}</h3>
-              <ul className="divide-y divide-line">
+              <ul className="divide-y divide-fill">
                 {rows.map((r) => (
                   <PaymentRowItem
                     key={r.key}
                     row={r}
                     cards={data.cards}
                     today={today}
+                    showDate={false}
                     actions={
                       r.paymentId ? (
                         <span className="flex shrink-0">

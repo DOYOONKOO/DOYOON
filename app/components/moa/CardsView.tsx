@@ -76,7 +76,7 @@ export default function CardsView() {
                       <IconButton icon="trash" label="삭제" onClick={() => setDeleting(c)} />
                     </span>
                   </div>
-                  <dl className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
+                  <dl className="mt-4 space-y-2 border-t border-fill pt-4 text-sm">
                     <div className="flex items-baseline justify-between gap-3">
                       <dt className="text-muted">연결된 구독</dt>
                       <dd className="font-bold text-ink">{summary.count}개</dd>

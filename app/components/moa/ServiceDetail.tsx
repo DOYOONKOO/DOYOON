@@ -144,10 +144,10 @@ export default function ServiceDetail({
                 aria-checked={selected}
                 onClick={() => selectPlan(p.id)}
                 className={cn(
-                  "flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors",
+                  "flex w-full items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3.5 text-left transition-colors",
                   selected
                     ? "border-accent bg-accent-soft"
-                    : "border-line bg-surface hover:bg-canvas",
+                    : "border-fill bg-surface hover:bg-canvas",
                 )}
               >
                 <span className="min-w-0">
@@ -167,7 +167,7 @@ export default function ServiceDetail({
 
         <div className="mt-3 flex items-center justify-between gap-3">
           <span className="text-sm font-medium text-muted">결제 주기</span>
-          <div className="inline-flex rounded-xl border border-line bg-canvas p-1">
+          <div className="inline-flex rounded-2xl bg-fill-strong p-1">
             {(Object.keys(CYCLE_LABELS) as Cycle[]).map((c) => {
               const available = plan?.prices[c] !== undefined;
               return (
@@ -178,8 +178,8 @@ export default function ServiceDetail({
                   disabled={!available}
                   onClick={() => setCycle(c)}
                   className={cn(
-                    "h-9 rounded-lg px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40",
-                    cycle === c ? "bg-surface text-ink shadow-sm" : "text-muted",
+                    "h-9 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+                    cycle === c ? "bg-surface text-ink shadow-[0_1px_3px_rgba(0,0,0,0.08)]" : "text-muted",
                   )}
                 >
                   {CYCLE_LABELS[c]}

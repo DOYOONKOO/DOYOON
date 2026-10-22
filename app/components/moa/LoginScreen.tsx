@@ -80,7 +80,7 @@ export default function LoginScreen() {
           <span className="text-2xl font-bold tracking-tight text-ink">모아구독</span>
         </div>
 
-        <div className="rounded-2xl border border-line bg-surface p-6">
+        <div className="rounded-3xl bg-surface p-7">
           {sentTo ? (
             <div className="text-center">
               <p className="text-3xl">📬</p>

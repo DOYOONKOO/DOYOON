@@ -269,7 +269,7 @@ export default function SubscriptionForm({
       onClose={onClose}
       footer={
         <div className="flex gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>
+          <Button variant="neutral" className="flex-1" onClick={onClose}>
             취소
           </Button>
           <Button type="submit" form="subscription-form" className="flex-[2]">

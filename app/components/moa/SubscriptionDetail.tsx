@@ -73,7 +73,7 @@ export default function SubscriptionDetail({
               수정
             </Button>
             {sub.status !== "ended" && (
-              <Button variant="secondary" className="flex-1" onClick={() => setConfirm("end")}>
+              <Button variant="neutral" className="flex-1" onClick={() => setConfirm("end")}>
                 앱에서 종료 처리
               </Button>
             )}
@@ -110,7 +110,7 @@ export default function SubscriptionDetail({
           )}
         </div>
 
-        <dl className="mt-3 divide-y divide-line">
+        <dl className="mt-3 divide-y divide-fill">
           <InfoRow label={sub.status === "trial" ? "체험 종료 · 첫 결제일" : "다음 결제일"}>
             {sub.status === "trial" ? (
               <>
@@ -182,7 +182,7 @@ export default function SubscriptionDetail({
               아직 기록된 결제가 없어요. 결제가 되면 &quot;결제 기록 추가&quot;로 남겨 보세요.
             </p>
           ) : (
-            <ul className="divide-y divide-line">
+            <ul className="divide-y divide-fill">
               {history.slice(0, 12).map((p) => (
                 <li key={p.id} className="flex items-center justify-between gap-3 py-2.5">
                   <div className="min-w-0">

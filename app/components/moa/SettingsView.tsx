@@ -127,10 +127,10 @@ export default function SettingsView() {
           <div className="mt-3">
             <Notice>
               알림 설정 화면만 먼저 만들어 두었어요. <strong>지금은 알림이 실제로 발송되지 않아요.</strong>{" "}
-              설정값만 이 브라우저에 저장돼요.
+              설정값만 내 계정에 저장돼요.
             </Notice>
           </div>
-          <div className="mt-2 divide-y divide-line">
+          <div className="mt-2 divide-y divide-fill">
             <Toggle
               label="결제 예정 알림"
               description="결제일이 가까워지면 알려줄 예정이에요."

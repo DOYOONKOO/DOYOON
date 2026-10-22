@@ -24,7 +24,7 @@ import {
   Segmented,
   ServiceAvatar,
   cn,
-  inputClass,
+  inputOnGrayClass,
 } from "./ui";
 
 type Tab = "browse" | "wishlist";
@@ -58,7 +58,7 @@ function WishlistTab({ onBrowse }: { onBrowse: () => void }) {
           const plan = getPlan(w.planId);
           const price = plan?.prices[w.cycle];
           return (
-            <li key={w.id} className="rounded-2xl border border-line bg-surface p-4">
+            <li key={w.id} className="rounded-3xl bg-surface p-5">
               <div className="flex items-center gap-3">
                 <ServiceAvatar name={service.name} />
                 <div className="min-w-0 flex-1">
@@ -194,7 +194,7 @@ export default function ExploreView() {
             />
             <input
               type="search"
-              className={cn(inputClass, "pl-10")}
+              className={cn(inputOnGrayClass, "pl-10")}
               placeholder="서비스명이나 기능으로 검색"
               aria-label="서비스 검색"
               value={query}
@@ -210,10 +210,10 @@ export default function ExploreView() {
                 aria-pressed={category === c}
                 onClick={() => setCategory(c)}
                 className={cn(
-                  "shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+                  "shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold transition-colors",
                   category === c
-                    ? "border-accent bg-accent text-white"
-                    : "border-line bg-surface text-muted hover:text-ink",
+                    ? "bg-ink text-white"
+                    : "bg-surface text-body hover:bg-fill-strong",
                 )}
               >
                 {c === "all" ? "전체" : CATEGORY_LABELS[c]}
@@ -247,7 +247,7 @@ export default function ExploreView() {
                     <button
                       type="button"
                       onClick={() => setDetailId(s.id)}
-                      className="flex h-full w-full flex-col rounded-2xl border border-line bg-surface p-5 text-left transition-shadow hover:shadow-md"
+                      className="flex h-full w-full flex-col rounded-3xl bg-surface p-6 text-left transition-transform active:scale-[0.99]"
                     >
                       <div className="flex items-start gap-3">
                         <ServiceAvatar name={s.name} />
@@ -268,14 +268,14 @@ export default function ExploreView() {
                         {s.features.slice(0, 2).map((f) => (
                           <li
                             key={f}
-                            className="rounded-full bg-canvas px-2.5 py-1 text-xs font-medium text-muted"
+                            className="rounded-full bg-fill px-2.5 py-1 text-xs font-medium text-muted"
                           >
                             {f}
                           </li>
                         ))}
                       </ul>
                       {low && (
-                        <p className="tabular mt-4 border-t border-line pt-3 text-sm text-muted">
+                        <p className="tabular mt-4 border-t border-fill pt-3 text-sm text-muted">
                           <strong className="text-base font-bold text-ink">
                             월 {formatMoney(low.amount, low.currency)}
                           </strong>{" "}
