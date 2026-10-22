@@ -167,8 +167,9 @@ export default function SettingsView() {
         <Card>
           <h2 className="text-base font-bold text-ink">데이터</h2>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            입력한 내용은 이 브라우저(localStorage)에만 저장돼요. 다른 기기와 동기화되지 않고,
-            브라우저 데이터를 지우면 사라져요.
+            입력한 내용은 로그인한 내 계정에 저장돼요(Supabase DB). 같은 계정으로 로그인하면 다른
+            기기에서도 볼 수 있고, 다른 사람은 볼 수 없어요. 아래 버튼으로 지운 데이터는 되돌릴 수
+            없어요.
           </p>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Button
@@ -200,7 +201,6 @@ export default function SettingsView() {
             {[
               "카드사·마이데이터 연동으로 결제 내역 자동 가져오기",
               "공식 서비스 API 연동 (가입·해지·실시간 요금)",
-              "로그인과 서버 DB 저장 (여러 기기 동기화)",
               "실제 알림 발송 (이메일·푸시)",
             ].map((t) => (
               <li key={t} className="flex gap-2">

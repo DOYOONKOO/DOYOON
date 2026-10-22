@@ -7,6 +7,7 @@ import {
   parseISO,
   type ISODate,
 } from "./date";
+import { newId } from "./id";
 import {
   defaultSettings,
   type AppData,
@@ -21,11 +22,25 @@ import {
 
 /** 데모 모드용 예시 데이터. 오늘 날짜를 기준으로 만들어서 모든 화면이 채워진다. */
 export function createDemoData(today: ISODate): AppData {
+  // 서로 참조하는 항목(카드↔구독↔결제)이 같은 uuid 를 쓰도록 키로 id 를 기억해 둔다
+  const ids = new Map<string, string>();
+  const id = (key: string) => {
+    let v = ids.get(key);
+    if (!v) {
+      v = newId();
+      ids.set(key, v);
+    }
+    return v;
+  };
+
   const cards: Card[] = [
-    { id: "demo_card_life", nickname: "생활비 카드", issuer: "삼성카드", last4: "4821", demo: true },
-    { id: "demo_card_global", nickname: "해외결제용", issuer: "현대카드", last4: "7305", demo: true },
-    { id: "demo_card_check", nickname: "월급통장 체크", issuer: "KB국민카드", last4: "1190", demo: true },
+    { id: id("card_life"), nickname: "생활비 카드", issuer: "삼성카드", last4: "4821", demo: true },
+    { id: id("card_global"), nickname: "해외결제용", issuer: "현대카드", last4: "7305", demo: true },
+    { id: id("card_check"), nickname: "월급통장 체크", issuer: "KB국민카드", last4: "1190", demo: true },
   ];
+  const life = id("card_life");
+  const global = id("card_global");
+  const check = id("card_check");
 
   // 결제일이 29~31일이면 달마다 어긋나 보이므로 데모에서는 28일 이하로 맞춘다
   const nextDate = (offset: number): ISODate => {
@@ -59,7 +74,7 @@ export function createDemoData(today: ISODate): AppData {
         ? next
         : addMonthsClamped(next, -CYCLE_MONTHS[cycle] * (o.historyCycles ?? 6));
     return {
-      id: `demo_sub_${key}`,
+      id: id(`sub_${key}`),
       serviceId,
       name: service.name,
       category: service.category,
@@ -93,57 +108,55 @@ export function createDemoData(today: ISODate): AppData {
 
   const subscriptions: Subscription[] = [
     sub("netflix", "netflix", "netflix:standard", "monthly", nextDate(3), {
-      cardId: "demo_card_life",
+      cardId: life,
       memo: "가족과 같이 봄",
     }),
     sub("coupang", "coupang-wow", "coupang-wow:wow", "monthly", nextDate(6), {
-      cardId: "demo_card_life",
+      cardId: life,
       source: "explore",
     }),
     sub("youtube", "youtube-premium", "youtube-premium:individual", "monthly", nextDate(11), {
-      cardId: "demo_card_life",
+      cardId: life,
     }),
     sub("chatgpt", "chatgpt", "chatgpt:plus", "monthly", nextDate(15), {
-      cardId: "demo_card_global",
+      cardId: global,
       memo: "업무용",
     }),
     sub("notion", "notion", "notion:plus", "yearly", nextDate(20), {
-      cardId: "demo_card_global",
+      cardId: global,
       historyCycles: 1,
     }),
     sub("google-one", "google-one", "google-one:2tb", "yearly", nextDate(270), {
-      cardId: "demo_card_check",
+      cardId: check,
       historyCycles: 1,
     }),
     sub("disney", "disney-plus", "disney-plus:premium", "monthly", nextDate(4), {
-      cardId: "demo_card_life",
+      cardId: life,
       status: "trial",
       memo: "체험 끝나기 전에 계속 쓸지 결정하기",
       source: "official",
     }),
     sub("tving", "tving", "tving:standard", "monthly", nextDate(8), {
-      cardId: "demo_card_life",
+      cardId: life,
       status: "ending",
       endDate: addDays(today, 7),
       memo: "이번 시즌만 보고 해지 예정 (공식 사이트에서 직접 해지해야 함)",
     }),
     {
       ...sub("icloud", "icloud", "icloud:200gb", "monthly", anchor31, {
-        cardId: "demo_card_check",
+        cardId: check,
       }),
       firstBillingDate: anchor31,
       memo: "매월 31일 결제 — 짧은 달엔 말일에 결제돼요",
     },
+    sub("melon", "melon", "melon:streaming", "monthly", melonNext, {
+      cardId: life,
+      historyCycles: 5,
+      status: "ended",
+      endDate: melonNext,
+    }),
     {
-      ...sub("melon", "melon", "melon:streaming", "monthly", melonNext, {
-        cardId: "demo_card_life",
-        historyCycles: 5,
-        status: "ended",
-        endDate: melonNext,
-      }),
-    },
-    {
-      id: "demo_sub_gym",
+      id: id("sub_gym"),
       serviceId: null,
       name: "동네 필라테스",
       category: "etc",
@@ -155,7 +168,7 @@ export function createDemoData(today: ISODate): AppData {
       firstBillingDate: addMonthsClamped(nextDate(18), -6),
       status: "active",
       endDate: null,
-      cardId: "demo_card_check",
+      cardId: check,
       memo: "월말 자동이체",
       source: "direct",
       createdAt,
@@ -165,6 +178,8 @@ export function createDemoData(today: ISODate): AppData {
 
   // 과거 결제 내역: 계산된 결제일마다 "완료" 기록을 만든다.
   // 일부러 하나는 실패, 하나는 기록 없음(확인 필요)으로 두어 해당 화면을 보여준다.
+  const chatgptId = id("sub_chatgpt");
+  const youtubeId = id("sub_youtube");
   const payments: Payment[] = [];
   const since = addDays(today, -200);
   const yesterday = addDays(today, -1);
@@ -173,17 +188,18 @@ export function createDemoData(today: ISODate): AppData {
     const dates = billingDates(s, since, yesterday);
     dates.forEach((date, i) => {
       const isLatest = i === dates.length - 1;
-      if (s.id === "demo_sub_chatgpt" && isLatest) return;
+      if (s.id === chatgptId && isLatest) return;
+      const failed = s.id === youtubeId && isLatest;
       payments.push({
-        id: `demo_pay_${s.id}_${date}`,
+        id: newId(),
         subscriptionId: s.id,
         serviceName: s.name,
         cardId: s.cardId,
         amount: s.amount,
         currency: s.currency,
         date,
-        status: s.id === "demo_sub_youtube" && isLatest ? "failed" : "paid",
-        memo: s.id === "demo_sub_youtube" && isLatest ? "한도 초과로 결제 실패" : "",
+        status: failed ? "failed" : "paid",
+        memo: failed ? "한도 초과로 결제 실패" : "",
         demo: true,
       });
     });
@@ -191,7 +207,7 @@ export function createDemoData(today: ISODate): AppData {
 
   const wishlist: WishlistItem[] = [
     {
-      id: "demo_wish_claude",
+      id: newId(),
       serviceId: "claude",
       planId: "claude:pro",
       cycle: "monthly",
@@ -199,7 +215,7 @@ export function createDemoData(today: ISODate): AppData {
       demo: true,
     },
     {
-      id: "demo_wish_apple-music",
+      id: newId(),
       serviceId: "apple-music",
       planId: "apple-music:individual",
       cycle: "monthly",

@@ -10,9 +10,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useAuth } from "./auth";
 import { createDemoData } from "./demo";
 import { todayISO, type ISODate } from "./date";
-import { localStorageRepository as repository } from "./repository";
+import { newId } from "./id";
+import type { AppRepository } from "./repository";
 import {
   emptyData,
   type AppData,
@@ -71,10 +73,14 @@ export function useApp() {
   return ctx;
 }
 
-const uid = (prefix: string) =>
-  `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
-
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AppProvider({
+  repository,
+  children,
+}: {
+  repository: AppRepository;
+  children: ReactNode;
+}) {
+  const { signOut } = useAuth();
   const [status, setStatus] = useState<Status>("loading");
   const [data, setData] = useState<AppData>(emptyData);
   const [today, setToday] = useState<ISODate>("");
@@ -83,8 +89,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [attempt, setAttempt] = useState(0);
   const loaded = useRef(false);
   const toastId = useRef(0);
+  // 서버에 마지막으로 저장된 상태. 저장이 실패하면 그대로 두어서 다음 저장 때 같이 다시 보낸다.
+  const syncedRef = useRef<AppData>(emptyData());
+  // 저장 요청을 한 줄로 세워서 순서가 뒤바뀌지 않게 한다
+  const queueRef = useRef<Promise<void>>(Promise.resolve());
 
-  // 최초 로드. 저장된 데이터가 없으면 데모 데이터로 시작한다.
+  // 최초 로드. 처음 이용하는 사용자라면 데모 데이터로 시작한다.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -92,6 +102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const now = todayISO();
         const stored = await repository.load();
         if (cancelled) return;
+        syncedRef.current = stored ?? emptyData();
         setToday(now);
         setData(stored ?? createDemoData(now));
         loaded.current = true;
@@ -103,16 +114,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [attempt]);
+  }, [attempt, repository]);
 
-  // 변경될 때마다 저장
+  // 변경될 때마다 바뀐 부분만 서버에 저장
   useEffect(() => {
     if (!loaded.current) return;
-    repository
-      .save(data)
-      .then(() => setSaveFailed(false))
-      .catch(() => setSaveFailed(true));
-  }, [data]);
+    const next = data;
+    queueRef.current = queueRef.current.then(async () => {
+      if (syncedRef.current === next) return;
+      try {
+        await repository.sync(syncedRef.current, next);
+        syncedRef.current = next;
+        setSaveFailed(false);
+      } catch {
+        setSaveFailed(true);
+      }
+    });
+  }, [data, repository]);
 
   // 자정을 넘겨 켜 둔 경우를 위해 화면으로 돌아올 때 오늘 날짜를 다시 읽는다
   useEffect(() => {
@@ -137,7 +155,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addSubscription(input) {
         const sub: Subscription = {
           ...input,
-          id: uid("sub"),
+          id: newId(),
           createdAt: new Date().toISOString(),
         };
         update((d) => ({
@@ -167,7 +185,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }));
       },
       addPayment(input) {
-        update((d) => ({ ...d, payments: [{ ...input, id: uid("pay") }, ...d.payments] }));
+        update((d) => ({ ...d, payments: [{ ...input, id: newId() }, ...d.payments] }));
       },
       updatePayment(id, input) {
         update((d) => ({
@@ -179,7 +197,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         update((d) => ({ ...d, payments: d.payments.filter((p) => p.id !== id) }));
       },
       addCard(input) {
-        update((d) => ({ ...d, cards: [...d.cards, { ...input, id: uid("card") }] }));
+        update((d) => ({ ...d, cards: [...d.cards, { ...input, id: newId() }] }));
       },
       updateCard(id, input) {
         update((d) => ({
@@ -212,7 +230,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ...d,
             wishlist: [
               {
-                id: uid("wish"),
+                id: newId(),
                 serviceId,
                 planId,
                 cycle,
@@ -233,12 +251,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const demo = createDemoData(todayISO());
         update((d) => {
           const kept = stripDemo(d);
+          // 관심 목록은 서비스당 1개만 둘 수 있어서, 이미 담은 서비스는 예시에서 뺀다
+          const keptServices = new Set(kept.wishlist.map((w) => w.serviceId));
           return {
             ...kept,
             subscriptions: [...kept.subscriptions, ...demo.subscriptions],
             payments: [...kept.payments, ...demo.payments],
             cards: [...kept.cards, ...demo.cards],
-            wishlist: [...kept.wishlist, ...demo.wishlist],
+            wishlist: [
+              ...kept.wishlist,
+              ...demo.wishlist.filter((w) => !keptServices.has(w.serviceId)),
+            ],
             settings: {
               ...kept.settings,
               monthlyBudget: kept.settings.monthlyBudget ?? demo.settings.monthlyBudget,
@@ -277,15 +300,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setStatus("loading");
           setAttempt((a) => a + 1);
         }}
-        onReset={async () => {
-          try {
-            await repository.clear();
-          } catch {
-            /* 지우지 못해도 다시 시도해 본다 */
-          }
-          setStatus("loading");
-          setAttempt((a) => a + 1);
-        }}
+        onSignOut={signOut}
       />
     );
   }
@@ -348,19 +363,19 @@ function LoadingScreen() {
 
 function LoadErrorScreen({
   onRetry,
-  onReset,
+  onSignOut,
 }: {
   onRetry: () => void;
-  onReset: () => void;
+  onSignOut: () => void;
 }) {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-canvas px-5">
       <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6 text-center">
         <p className="text-3xl">⚠️</p>
-        <h1 className="mt-3 text-lg font-bold text-ink">저장된 데이터를 읽지 못했어요</h1>
+        <h1 className="mt-3 text-lg font-bold text-ink">데이터를 불러오지 못했어요</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted">
-          브라우저 저장소를 사용할 수 없거나 저장된 내용이 손상됐을 수 있어요. 다시 시도하거나,
-          저장된 데이터를 지우고 처음부터 시작할 수 있어요.
+          인터넷 연결이 끊겼거나 서버에 문제가 있을 수 있어요. 잠시 후 다시 시도해 주세요. 계속
+          안 되면 로그아웃했다가 다시 로그인해 보세요. 저장된 데이터는 지워지지 않아요.
         </p>
         <div className="mt-5 flex flex-col gap-2">
           <button
@@ -372,10 +387,10 @@ function LoadErrorScreen({
           </button>
           <button
             type="button"
-            onClick={onReset}
-            className="h-11 rounded-xl border border-line font-semibold text-bad hover:bg-canvas"
+            onClick={onSignOut}
+            className="h-11 rounded-xl border border-line font-semibold text-ink hover:bg-canvas"
           >
-            저장된 데이터 지우고 시작
+            로그아웃
           </button>
         </div>
       </div>

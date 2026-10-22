@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import { useAuth } from "../../lib/moa/auth";
 import { useApp } from "../../lib/moa/store";
 import { Icon, type IconName } from "./icons";
 import { ConfirmDialog, Modal, cn } from "./ui";
@@ -33,6 +34,7 @@ function isActive(pathname: string, href: string) {
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { isDemo, saveFailed, actions, toast } = useApp();
+  const { user, signOut } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
   const [clearDemoOpen, setClearDemoOpen] = useState(false);
 
@@ -69,9 +71,23 @@ export default function AppShell({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
-        <p className="mt-auto px-2 text-xs leading-relaxed text-muted">
-          데이터는 이 브라우저에만 저장돼요. 카드사·결제·구독 서비스와는 아직 연결되어 있지 않아요.
-        </p>
+        <div className="mt-auto space-y-3 px-2">
+          <div>
+            <p className="truncate text-sm font-semibold text-ink" title={user.email}>
+              {user.email}
+            </p>
+            <button
+              type="button"
+              onClick={signOut}
+              className="mt-0.5 text-[13px] font-semibold text-muted underline underline-offset-2 hover:text-ink"
+            >
+              로그아웃
+            </button>
+          </div>
+          <p className="text-xs leading-relaxed text-muted">
+            내 계정에 저장돼요. 카드사·결제·구독 서비스와는 아직 연결되어 있지 않아요.
+          </p>
+        </div>
       </aside>
 
       <div className="min-w-0 flex-1 md:pl-60">
@@ -98,8 +114,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
             className="border-b border-bad/20 bg-bad-soft px-4 py-2.5 text-[13px] font-medium text-bad md:px-8"
           >
             <div className="mx-auto max-w-6xl">
-              브라우저에 저장하지 못했어요. 지금 입력한 내용은 새로고침하면 사라질 수 있어요.
-              (시크릿 모드이거나 저장 공간이 가득 찼는지 확인해 주세요.)
+              서버에 저장하지 못했어요. 인터넷 연결을 확인해 주세요. 연결되면 다음 저장 때 함께
+              다시 저장되지만, 그 전에 창을 닫거나 새로고침하면 방금 입력한 내용이 사라질 수 있어요.
             </div>
           </div>
         )}
@@ -159,6 +175,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
               </li>
             ))}
           </ul>
+          <div className="mt-3 border-t border-line pt-4">
+            <p className="truncate text-sm font-semibold text-ink">{user.email}</p>
+            <button
+              type="button"
+              onClick={signOut}
+              className="mt-1 text-sm font-semibold text-muted underline underline-offset-2"
+            >
+              로그아웃
+            </button>
+          </div>
         </Modal>
       )}
 

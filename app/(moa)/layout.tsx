@@ -1,11 +1,6 @@
 import type { ReactNode } from "react";
-import AppShell from "../components/moa/AppShell";
-import { AppProvider } from "../lib/moa/store";
+import MoaProviders from "../components/moa/MoaProviders";
 
 export default function MoaLayout({ children }: { children: ReactNode }) {
-  return (
-    <AppProvider>
-      <AppShell>{children}</AppShell>
-    </AppProvider>
-  );
+  return <MoaProviders>{children}</MoaProviders>;
 }
